@@ -2,17 +2,17 @@
 # coding: utf-8
 
 # In[1]:
-#import streamlit as st
-#import pandas as pd
-#import matplotlib.pyplot as plt
-#import numpy as np
-#import seaborn as sns
-#from transformers import AutoModelForSequenceClassification
-#from transformers import TFAutoModelForSequenceClassification
-#from transformers import AutoTokenizer
-#from scipy.special import softmax
-#import csv
-#import urllib.request
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from transformers import AutoModelForSequenceClassification
+from transformers import TFAutoModelForSequenceClassification
+from transformers import AutoTokenizer
+from scipy.special import softmax
+import csv
+import urllib.request
 
 
 
@@ -105,23 +105,22 @@ if st.button("Analyze Tweet"):
 test_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
 st.write(test_data.iloc[-1])
 
-sns.reset_defaults()
 
-fig = plt.figure()
-plot1 = sns.displot(test_data, x='Airline', hue='Sentiment', multiple='stack')
-st.pyplot(fig=plot1)
+#fig = plt.figure()
+#plot1 = sns.displot(test_data, x='Airline', hue='Sentiment', multiple='stack')
+#st.pyplot(fig=plot1)
 
-option = st.selectbox(
-    'Filter Data to Selected Airline',
-    ('AmericanAir', 'SouthwestAir', 'USAirways', 'united', 'VirginAmerica' ))
+#option = st.selectbox(
+#    'Filter Data to Selected Airline',
+#    ('AmericanAir', 'SouthwestAir', 'USAirways', 'united', 'VirginAmerica' ))
 
 
-plot2_data = test_data.loc[(test_data['Airline'] == option)]
+#plot2_data = test_data.loc[(test_data['Airline'] == option)]
 
-st.subheader("Aspect Analysis for "+ option)
-fig = plt.figure()
-plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack')
-st.pyplot(fig=plot2)
+#st.subheader("Aspect Analysis for "+ option)
+#fig = plt.figure()
+#plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack')
+#st.pyplot(fig=plot2)
 
-st.subheader("Full List of Tweets")
-st.dataframe(test_data,height = 500)
+#st.subheader("Full List of Tweets")
+#st.dataframe(test_data,height = 500)
