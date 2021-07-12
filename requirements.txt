@@ -1,3 +1,4 @@
+-f https://download.pytorch.org/whl/torch_stable.html
 streamlit==0.49.0
 vega-datasets==0.7.0
 altair==3.2.0
@@ -8,5 +9,5 @@ transformers==4.8.2
 scipy==1.5.2
 urllib3==1.25.11
 unicodecsv==0.14.1
-torch==1.9.0
-tensorflow==2.5.0
+torch==1.9.0+cpu
+tensorflow-cpu==2.5.0
