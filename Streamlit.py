@@ -3,7 +3,6 @@
 
 # In[1]:
 import streamlit as st
-import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
