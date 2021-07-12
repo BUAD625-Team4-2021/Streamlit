@@ -17,6 +17,7 @@ import urllib.request
 
 
 # Preprocess text (username and link placeholders)
+@st.cache(allow_output_mutation=True)
 def preprocess(text):
     new_text = []
     for t in text.split(" "):
@@ -41,7 +42,7 @@ model.save_pretrained(MODEL)
 tokenizer.save_pretrained(MODEL)
 # In[2]:
 
-
+@st.cache(allow_output_mutation=True)
 def checkairline(Tweet):
     if "@AmericanAir" in Tweet:
         airlinecheck = "AmericanAir"
@@ -69,7 +70,7 @@ st.title('Airline Sentiment Analysis')
 st.subheader("Enter a Tweet in order to receive the aspect and sentiment")
 
 #user_df = [["test"],["user"]]
-
+@st.cache(allow_output_mutation=True)
 def get_data():
     return []
 
