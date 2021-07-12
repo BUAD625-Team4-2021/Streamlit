@@ -1,149 +1,129 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[1]:
+import streamlit as st
+import time
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from transformers import AutoModelForSequenceClassification
+from transformers import TFAutoModelForSequenceClassification
+from transformers import AutoTokenizer
+from scipy.special import softmax
+import csv
+import urllib.request
+
+
+
+# Preprocess text (username and link placeholders)
+@st.cache(allow_output_mutation=True)
+def preprocess(text):
+    new_text = []
+    for t in text.split(" "):
+        t = '@user' if t.startswith('@') and len(t) > 1 else t
+        t = 'http' if t.startswith('http') else t
+        new_text.append(t)
+    return " ".join(new_text)
+
+task='sentiment'
+MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+
+labels=[]
+mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt"
+with urllib.request.urlopen(mapping_link) as f:
+    html = f.read().decode('utf-8').split("\n")
+    csvreader = csv.reader(html, delimiter='\t')
+labels = [row[1] for row in csvreader if len(row) > 1]
+
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+model.save_pretrained(MODEL)
+tokenizer.save_pretrained(MODEL)
+# In[2]:
+
+@st.cache(allow_output_mutation=True)
+def checkairline(Tweet):
+    if "@AmericanAir" in Tweet:
+        airlinecheck = "AmericanAir"
+    if "@SouthwestAir" in Tweet:
+        airlinecheck = "SouthwestAir"
+    if "@USAirways" in Tweet:
+        airlinecheck = "USAirways"
+    if "@united" in Tweet:
+        airlinecheck = "united"
+    if "@VirginAmerica" in Tweet:
+        airlinecheck = "VirginAmerica"
+    return airlinecheck
+
+
+
+
+
 # In[3]:
 
 
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-from tweepy.streaming import StreamListener
-from tweepy import OAuthHandler
-from tweepy import Stream
-import json
 
 
-# In[54]:
-
-
+# In[ ]:
 st.title('Airline Sentiment Analysis')
+st.subheader("Enter a Tweet in order to receive the aspect and sentiment")
+
+#user_df = [["test"],["user"]]
+@st.cache(allow_output_mutation=True)
+def get_data():
+    return []
+
+user_input = st.text_input("Input Tweet")
 
 
-# In[71]:
+if st.button("Analyze Tweet"):
+    for tweet in user_input:
+    
+        text = user_input
+        text = preprocess(text)
+        encoded_input = tokenizer(text, return_tensors='pt')
+        output = model(**encoded_input)
+        scores = output[0][0].detach().numpy()
+        scores = softmax(scores)
+
+        ranking = np.argsort(scores)
+        ranking = ranking[::-1]
+        for i in range(scores.shape[0]):
+            l = labels[ranking[i]]
+            s = scores[ranking[i]]
+            #print(f"{i+1}) {l} {np.round(float(s), 4)}")
+
+        final_score = labels[ranking[0]]
+        airlinecheck = checkairline(user_input)
+   
+        
+    
+    get_data().append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": "aspect"})
+
+    
+
+test_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
+st.write(test_data.iloc[-1])
+
+sns.reset_defaults()
+
+fig = plt.figure()
+plot1 = sns.displot(test_data, x='Airline', hue='Sentiment', multiple='stack')
+st.pyplot(fig=plot1)
+
+option = st.selectbox(
+    'Filter Data to Selected Airline',
+    ('AmericanAir', 'SouthwestAir', 'USAirways', 'united', 'VirginAmerica' ))
 
 
-df = pd.read_csv("C:/Users/Lacey/Documents/Ryan/Udel/Tweets.csv")
+plot2_data = test_data.loc[(test_data['Airline'] == option)]
 
+st.subheader("Aspect Analysis for "+ option)
+fig = plt.figure()
+plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack')
+st.pyplot(fig=plot2)
 
-# In[72]:
-
-
-df.head()
-
-
-# In[93]:
-
-
-st.subheader('Total Tweets for Each Airline')
-
-
-# In[95]:
-
-
-fig, ax = plt.subplots()
-df.airline.value_counts().plot(kind='barh')
-st.pyplot(fig)
-
-
-# In[98]:
-
-
-st.subheader('Complaint Frequency')
-
-
-# In[97]:
-
-
-fig, ax = plt.subplots()
-df.negativereason.value_counts().plot(kind='barh',figsize=(7,7))
-plt.xlabel('Frequency')
-plt.ylabel('Negative Reasons')
-st.pyplot(fig)
-
-
-# In[55]:
-
-
-st.subheader("Live Tweets from Twitter")
-
-
-# In[56]:
-
-
-ACCESS_TOKEN = "1406225956444987396-UIQnOCMLD65Tc4eAREek0YwbPz4MoG"
-ACCESS_TOKEN_SECRET = "4SLcS9EVEAKPGRf7GcKrQCFWqLypl6MwuHwV1s7ztUOuO"
-CONSUMER_KEY = "gISINc0R1EYSwhmJfP37NC8Id"
-CONSUMER_SECRET = "biD9WpUCVdrr1eMyQtfOrsroSU7TjLcEKAYPsKoPGb8laJ3wkg"
-
-
-# In[63]:
-
-
-# # # # TWITTER STREAMER # # # #
-class TwitterStreamer():
-    """
-    Class for streaming and processing live tweets.
-    """
-    def __init__(self):
-        pass
-
-    def stream_tweets(self, fetched_tweets_filename, hash_tag_list):
-        # This handles Twitter authetification and the connection to Twitter Streaming API
-        listener = StdOutListener(fetched_tweets_filename)
-        auth = OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-        auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-        stream = Stream(auth, listener)
-
-        # This line filter Twitter Streams to capture data by the keywords: 
-        stream.filter(track=hash_tag_list, languages=["en"])
-
-
-# # # # TWITTER STREAM LISTENER # # # #
-class StdOutListener(StreamListener):
-    """
-    This is a basic listener that just prints received tweets to stdout.
-    """
-    def __init__(self, fetched_tweets_filename):
-        self.fetched_tweets_filename = fetched_tweets_filename
-
-    def on_data(self, data):
-        try:
-            json_load = json.loads(data)
-            text = {'text': json_load['text']}
-            st.text(json.dumps(text))
-            with open(self.fetched_tweets_filename, 'a') as tf:
-                tf.write(data)
-            return True
-        except BaseException as e:
-            print("Error on_data %s" % str(e))
-        return True
-          
-
-    def on_error(self, status):
-        print(status)
-
-
-# In[64]:
-
-
-if __name__ == '__main__':
- 
-    # Authenticate using config.py and connect to Twitter Streaming API.
-    hash_tag_list = ["@AmericanAir", "@SouthwestAir", "@USAirways","@united", "@VirginAmerica"]
-    fetched_tweets_filename = "tweets.txt"
-
-    twitter_streamer = TwitterStreamer()
-    twitter_streamer.stream_tweets(fetched_tweets_filename, hash_tag_list)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
+st.subheader("Full List of Tweets")
+st.dataframe(test_data,height = 500)
