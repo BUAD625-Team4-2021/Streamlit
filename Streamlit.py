@@ -3,6 +3,8 @@
 
 # In[1]:
 import streamlit as st
+import altair as alt
+import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -106,9 +108,22 @@ if st.button("Analyze Tweet"):
 test_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
 st.write(test_data.iloc[-1])
 
+sns.set_palette("muted")
+sns.set(font_scale=.75)
+
+palette = {"positive":"#078112",
+           "negative":"#AD3108", 
+           "neutral":"#A59F9D"}
 
 fig = plt.figure()
-plot1 = sns.displot(test_data, x='Airline', hue='Sentiment', multiple='stack')
+plot1 = sns.catplot(x = "Airline",       # x variable name
+            hue = "Sentiment",  # group variable name
+            data = test_data,     # dataframe to plot
+            kind = "count",
+            palette=palette,
+            hue_order = ["positive","neutral","negative"])
+plt.ylabel('Count of Tweets')
+plt.title('Tweet Distribution')
 st.pyplot(fig=plot1)
 
 option = st.selectbox(
@@ -118,10 +133,21 @@ option = st.selectbox(
 
 plot2_data = test_data.loc[(test_data['Airline'] == option)]
 
-st.subheader("Aspect Analysis for "+ option)
+palette = {"positive":"#078112",
+           "negative":"#AD3108", 
+           "neutral":"#A59F9D"}
+
 fig = plt.figure()
-plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack')
+plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack',palette = palette,hue_order=["positive","neutral","negative"])
+plt.ylabel('Count of Tweets')
+plt.xlabel('Aspect')
+plt.title('Aspect Analysis for '+ option)
 st.pyplot(fig=plot2)
+
 
 st.subheader("Full List of Tweets")
 st.dataframe(test_data,height = 500)
+
+        
+    
+
