@@ -50,31 +50,28 @@ def checkairline(Tweet):
         airlinecheck = "AmericanAir"
     if "@SouthwestAir" in Tweet:
         airlinecheck = "SouthwestAir"
-    if "@USAirways" in Tweet:
-        airlinecheck = "USAirways"
+    if "@Delta" in Tweet:
+        airlinecheck = "Delta"
     if "@united" in Tweet:
         airlinecheck = "united"
-    if "@VirginAmerica" in Tweet:
-        airlinecheck = "VirginAmerica"
+    if "@JetBlue" in Tweet:
+        airlinecheck = "JetBlue"
     return airlinecheck
 
-
-
-
+new_data = pd.read_csv('https://github.com/BUAD625-Team4-2021/New_Tweets/blob/main/new_tweets_final_sentiment.csv?raw=true',index_col=0)
 
 # In[3]:
 
-
-
+@st.cache(allow_output_mutation=True)
+def get_data():
+    return []
 
 # In[ ]:
 st.title('Airline Sentiment Analysis')
 st.subheader("Enter a Tweet in order to receive the aspect and sentiment")
 
 #user_df = [["test"],["user"]]
-@st.cache(allow_output_mutation=True)
-def get_data():
-    return []
+
 
 user_input = st.text_input("Input Tweet")
 
@@ -88,7 +85,6 @@ if st.button("Analyze Tweet"):
         output = model(**encoded_input)
         scores = output[0][0].detach().numpy()
         scores = softmax(scores)
-
         ranking = np.argsort(scores)
         ranking = ranking[::-1]
         for i in range(scores.shape[0]):
@@ -102,10 +98,12 @@ if st.button("Analyze Tweet"):
         
     
     get_data().append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": "aspect"})
+    #test_data.append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": "aspect"}, ignore_index=True)
 
-    
+user_input_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
 
-test_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
+test_data = pd.concat([new_data,user_input_data]).reset_index(drop=True)
+
 st.write(test_data.iloc[-1])
 
 sns.set_palette("muted")
@@ -128,7 +126,7 @@ st.pyplot(fig=plot1)
 
 option = st.selectbox(
     'Filter Data to Selected Airline',
-    ('AmericanAir', 'SouthwestAir', 'USAirways', 'united', 'VirginAmerica' ))
+    ('AmericanAir', 'SouthwestAir', 'Delta', 'united', 'JetBlue' ))
 
 
 plot2_data = test_data.loc[(test_data['Airline'] == option)]
@@ -146,7 +144,7 @@ st.pyplot(fig=plot2)
 
 
 st.subheader("Full List of Tweets")
-st.dataframe(test_data,height = 500)
+st.dataframe(test_data,height = 300)
 
         
     
