@@ -28,6 +28,60 @@ def preprocess(text):
         new_text.append(t)
     return " ".join(new_text)
 
+#Load Aspects dictionary
+aspect_assignments = {'Customer Service':['contact', 'emailed', 'fix', 'staff', 'speak', 'talk', 'care', 'experience', 'rep', 'issue', 'thanks', 'hold', 'thank', 'appreciate', 'response', 'service', 'customer', 'phone', 'agent', 'email', 'speak', 'help', 'please', 'call', 'refund', 'need'],
+                      'Ongoing Flight(s)':['travel', 'wifi', 'leaving', 'updates', 'weather', 'attendant', 'connecting', 'early', 'arrived', 'landed', 'gate', 'delay', 'delayed', 'late', 'status', 'schedule', 'cancelled', 'cancel', 'pilots', 'pilot', 'passengers', 'passenger', 'boarding'],
+                      'Booking': ['pass', 'credit', 'miles', 'hotel', 'app', 'fee', 'voucher', 'upgrade', 'class', 'available', 'website', 'online', 'book', 'booking', 'seats', 'seat', 'boarding', 'rebook', 'confirmation', 'reschedule', 'ticket', 'reserved'],
+                      'Luggage': ['bag', 'check', 'lost', 'baggage', 'bags', 'luggage', 'claim'],
+                      'Wait Times': ['wait', 'waited', 'stuck', 'line', 'hour', 'hours', 'minutes', 'days', 'today', 'tomorrow', 'time', 'min', 'hrs']
+                      }
+## Function to grab aspect based on word (key based on value)
+def get_key(val):
+    for key, value in aspect_assignments.items():
+        for item in value:
+            if (val == item):
+                return key
+            
+
+# function to get the aspect for a tweet 
+def get_aspect_for_tweet(tweet):
+    cs = 0
+    of = 0
+    bo = 0
+    lu = 0
+    wt = 0
+    me = 0
+    tweet_array = tweet.split(" ")
+    for word in tweet_array:
+        tof = False
+        for value in aspect_assignments.values():
+            if (word in value):
+                tof = True
+                aspect = get_key(word)
+                if aspect == 'Customer Service':
+                    cs += 1
+                if aspect == 'Ongoing Flight(s)':
+                    of += 1
+                if aspect == 'Booking':
+                    bo += 1
+                if aspect == 'Luggage':
+                    lu += 1
+                if aspect == 'Wait Times':
+                    wt += 1
+                break
+
+    assignments = {'cs': cs,'of': of,'bo': bo,'lu': lu,'me': me}
+    test_value = max(assignments.values())
+    test_key = 'me'
+    if test_value > 0:
+        for key, value in assignments.items():
+            if test_value == value:
+                test_key = key
+                break
+    aspects = {'cs': 'Customer Service', 'of': 'Ongoing Flight(s)', 'bo': 'Booking', 'lu': 'Luggage', 'me': "Miscellaneous"} 
+    aspect = aspects[test_key]
+    return aspect
+            
 #Load sentiment model
 task='sentiment'
 MODEL = f"cardiffnlp/twitter-roberta-base-sentiment"
@@ -96,9 +150,10 @@ if st.button("Analyze Tweet"):
 
         final_score = labels[ranking[0]]
         airlinecheck = checkairline(user_input)
+        aspect = get_aspect_for_tweet(encoded_input)
    
         
-    get_data().append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": "aspect"})
+    get_data().append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": aspect})
     
 #Combine data loaded from Github and new tweets entered by user
 user_input_data = pd.DataFrame(get_data(), columns =['Tweet', 'Airline', 'Sentiment','Aspect'], dtype = float)
