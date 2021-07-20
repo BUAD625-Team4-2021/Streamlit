@@ -36,6 +36,7 @@ aspect_assignments = {'Customer Service':['contact', 'emailed', 'fix', 'staff', 
                       'Wait Times': ['wait', 'waited', 'stuck', 'line', 'hour', 'hours', 'minutes', 'days', 'today', 'tomorrow', 'time', 'min', 'hrs']
                       }
 ## Function to grab aspect based on word (key based on value)
+@st.cache(allow_output_mutation=True)
 def get_key(val):
     for key, value in aspect_assignments.items():
         for item in value:
@@ -43,7 +44,8 @@ def get_key(val):
                 return key
             
 
-# function to get the aspect for a tweet 
+# function to get the aspect for a tweet
+@st.cache(allow_output_mutation=True)
 def get_aspect_for_tweet(tweet):
     cs = 0
     of = 0
@@ -116,7 +118,6 @@ def checkairline(Tweet):
 
 #Load in new tweet data from Github
 new_data = pd.read_csv('https://github.com/BUAD625-Team4-2021/New_Tweets/blob/main/new_tweets_final_sentiment.csv?raw=true',index_col=[0])
-new_data = new_data.drop("Unnamed: 0.1",1)
 
 
 #Create cache to hold all user input tweets
@@ -150,7 +151,8 @@ if st.button("Analyze Tweet"):
 
         final_score = labels[ranking[0]]
         airlinecheck = checkairline(user_input)
-        aspect = get_aspect_for_tweet(encoded_input)
+        aspect = get_aspect_for_tweet(text)
+        
    
         
     get_data().append({"Tweet": user_input, "Airline": airlinecheck, "Sentiment": final_score, "Aspect": aspect})
@@ -194,6 +196,7 @@ palette = {"positive":"#078112",
            "negative":"#AD3108", 
            "neutral":"#A59F9D"}
 
+sns.set(font_scale=.65)
 fig = plt.figure()
 plot2 = sns.displot(plot2_data, x='Aspect', hue='Sentiment', multiple='stack',palette = palette,hue_order=["positive","neutral","negative"])
 plt.ylabel('Count of Tweets')
